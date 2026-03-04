@@ -1,7 +1,8 @@
 function maxIndex(arr, x){
-	let index = 0;
-	for(let i = 0; i <= arr.length; ++i) {
-		if(arr[i] == x){
+	let index = -1;   
+
+	for(let i = 0; i < arr.length; ++i) {
+		if(arr[i] === x){
 			index = i;
 		}
 	}
@@ -10,4 +11,5 @@ function maxIndex(arr, x){
 
 let arr = [3, 6, 9, 12];
 let x = 9;
-console.log(maxIndex(arr, x));
+
+console.log(maxIndex(arr, x)); 
