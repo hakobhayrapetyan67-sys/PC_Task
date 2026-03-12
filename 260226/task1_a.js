@@ -1,8 +1,8 @@
 function evenOdd(x) {
 	if(x % 2 == 0)
-		console.log("even");
+		return "even";
 	else
-		console.log("odd");
+		return"odd";
 }
 
 let x = +prompt("enter the number");
