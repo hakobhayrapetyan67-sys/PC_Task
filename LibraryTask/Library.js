@@ -28,13 +28,14 @@ class Library {
     borrowBook(title) {
         let book = this.findBookByTitle(title);
         if (!book) return "girqy chka";
-        book.borrowBook();
+	return book.borrowBook();
+
     }
 
     returnBook(title) {
         let book = this.findBookByTitle(title);
         if (!book) return "girqy chka";
-        book.returnBook();
+       	return book.returnBook();
     }
 
     showAllBooks() {

@@ -29,12 +29,12 @@ class Book {
     }
 
     borrowBook() {
-        if (!this.#isAvailable) throw new Error("girqy zbaxvac e");
+        if (!this.#isAvailable) return("girqy zbaxvac e");
         this.#isAvailable = false;
     }
 
     returnBook() {
-        if (this.#isAvailable) throw new Error("girqn arden ka");
+        if (this.#isAvailable)return("girqn arden ka");
         this.#isAvailable = true;
     }
 
