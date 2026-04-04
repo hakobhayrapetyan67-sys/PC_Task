@@ -23,7 +23,7 @@ class Book {
     }
 
     set title(value) {
-        if (!value) throw new Error("Title cannot be empty");
+        if (!value) return"Title cannot be empty";
         this.#title = value;
     }
 
@@ -33,7 +33,7 @@ class Book {
     }
 
     set author(value) {
-        if (!value) throw new Error("Author cannot be empty");
+        if (!value) return "Author cannot be empty";
         this.#author = value;
     }
 
@@ -43,9 +43,7 @@ class Book {
     }
 
     set year(value) {
-        if (typeof value !== "number" || value <= 0) {
-            throw new Error("Invalid year");
-        }
+        if (typeof value !== "number" || value <= 0) return "Invalid year";
         this.#year = value;
     }
 
