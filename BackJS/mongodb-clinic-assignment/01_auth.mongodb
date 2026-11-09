@@ -1,0 +1,38 @@
+db.adminCommand({ listDatabases: 1 })
+
+use('admin')
+
+db.createUser({
+  user: 'labAdmin',
+  pwd: 'YourPassword123',
+  roles: [
+    { role: 'userAdminAnyDatabase', db: 'admin' },
+    { role: 'readWriteAnyDatabase', db: 'admin' }
+  ]
+})
+
+db.adminCommand({ listDatabases: 1 })
+
+db.runCommand({ connectionStatus: 1 })
+
+use('clinic')
+
+db.createUser({
+  user: 'mechSha256',
+  pwd: 'Password123',
+  roles: [ { role: 'read', db: 'clinic' } ],
+  mechanisms: [ 'SCRAM-SHA-256' ]
+})
+
+db.createUser({
+  user: 'mechSha1',
+  pwd: 'Pasword123',
+  roles: [ { role: 'read', db: 'clinic' } ],
+  mechanisms: [ 'SCRAM-SHA-1' ]
+})
+
+db.runCommand({ connectionStatus: 1 })
+
+db.adminCommand({ getParameter: 1, authenticationMechanisms: 1 })
+
+db.runCommand({ connectionStatus: 1 })

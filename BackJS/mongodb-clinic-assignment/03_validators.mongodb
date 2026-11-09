@@ -1,0 +1,173 @@
+use('clinic')
+
+db.users.drop()
+db.appointments.drop()
+
+db.createCollection('users', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['name', 'email', 'role', 'active'],
+      properties: {
+        name: { bsonType: 'string', minLength: 2, maxLength: 80 },
+        email: { bsonType: 'string', pattern: '^.+@.+\\..+$' },
+        phone: { bsonType: 'string', pattern: '^[0-9+()\\- ]{7,20}$' },
+        role: { enum: ['doctor', 'patient', 'admin'] },
+        active: { bsonType: 'bool' },
+        createdAt: { bsonType: 'date' },
+        doctor: {
+          bsonType: 'object',
+          required: ['specialty', 'licenseNo'],
+          properties: {
+            specialty: { bsonType: 'string' },
+            licenseNo: { bsonType: 'string', pattern: '^MD-[0-9]{4}$' }
+          },
+          additionalProperties: false
+        },
+        patient: {
+          bsonType: 'object',
+          required: ['birthDate'],
+          properties: {
+            birthDate: { bsonType: 'date' },
+            bloodType: { enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] },
+            allergies: {
+              bsonType: 'array',
+              uniqueItems: true,
+              items: { bsonType: 'string' }
+            }
+          },
+          additionalProperties: false
+        }
+      },
+      additionalProperties: false,
+      oneOf: [
+        {
+          properties: {
+            role: { enum: ['doctor'] },
+            doctor: { bsonType: 'object' }
+          },
+          required: ['doctor'],
+          not: { required: ['patient'] }
+        },
+        {
+          properties: {
+            role: { enum: ['patient'] },
+            patient: { bsonType: 'object' }
+          },
+          required: ['patient'],
+          not: { required: ['doctor'] }
+        },
+        {
+          properties: {
+            role: { enum: ['admin'] }
+          },
+          not: { anyOf: [ { required: ['doctor'] }, { required: ['patient'] } ] }
+        }
+      ]
+    }
+  },
+  validationLevel: 'strict',
+  validationAction: 'error'
+})
+
+db.createCollection('appointments', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['doctorId', 'patientId', 'start', 'durationMin', 'reason', 'status', 'fee'],
+      properties: {
+        doctorId: { bsonType: 'objectId' },
+        patientId: { bsonType: 'objectId' },
+        start: { bsonType: 'date' },
+        durationMin: { bsonType: 'number', minimum: 5, maximum: 240 },
+        reason: { bsonType: 'string', minLength: 3, maxLength: 200 },
+        status: { enum: ['scheduled', 'completed', 'cancelled'] },
+        fee: { bsonType: 'number', minimum: 0 },
+        notes: { bsonType: 'string' },
+        prescriptions: {
+          bsonType: 'array',
+          maxItems: 10,
+          items: {
+            bsonType: 'object',
+            required: ['drug', 'dose', 'days'],
+            properties: {
+              drug: { bsonType: 'string' },
+              dose: { bsonType: 'string' },
+              days: { bsonType: 'number', minimum: 1, maximum: 365 }
+            },
+            additionalProperties: false
+          }
+        }
+      },
+      additionalProperties: false
+    }
+  },
+  validationLevel: 'strict',
+  validationAction: 'error'
+})
+
+db.users.insertOne({})
+db.appointments.insertOne({ doctorId: new ObjectId(), patientId: new ObjectId(), start: "2025-01-01", durationMin: 10, reason: "Test", status: "scheduled", fee: 10 })
+db.users.insertOne({ name: "Test User", email: "test@test.com", role: "nurse", active: true })
+db.appointments.insertOne({ doctorId: new ObjectId(), patientId: new ObjectId(), start: new Date(), durationMin: 0, reason: "Test", status: "scheduled", fee: 10 })
+db.users.insertOne({ name: "Test User", email: "test.com", role: "admin", active: true })
+db.users.insertOne({ name: "Test User", email: "test@test.com", role: "admin", active: true, extraField: "invalid" })
+db.appointments.insertOne({ doctorId: new ObjectId(), patientId: new ObjectId(), start: new Date(), durationMin: 10, reason: "Test", status: "scheduled", fee: 10, prescriptions: [{ drug: "A", dose: "B" }] })
+db.appointments.insertOne({ doctorId: new ObjectId(), patientId: new ObjectId(), start: new Date(), durationMin: 10, reason: "Test", status: "scheduled", fee: null })
+db.users.insertOne({ name: "Doc", email: "doc@test.com", role: "doctor", active: true })
+db.users.insertOne({ name: "Pat", email: "pat@test.com", role: "patient", active: true, patient: { birthDate: new Date() }, doctor: { specialty: "A", licenseNo: "MD-1234" } })
+
+db.users.insertOne({ name: "Doc Test", email: "doc@test.com", role: "doctor", active: true, doctor: { specialty: "Cardio", licenseNo: "MD-9999" } })
+db.users.insertOne({ name: "Pat Test", email: "pat@test.com", role: "patient", active: true, patient: { birthDate: new Date("1990-01-01") } })
+db.users.insertOne({ name: "Admin Test", email: "admin@test.com", role: "admin", active: true })
+db.appointments.insertOne({ doctorId: new ObjectId(), patientId: new ObjectId(), start: new Date(), durationMin: 30, reason: "Checkup", status: "scheduled", fee: 50, prescriptions: [{ drug: "Aspirin", dose: "100mg", days: 5 }] })
+
+db.users.deleteMany({ name: { $in: ["Doc Test", "Pat Test", "Admin Test"] } })
+db.appointments.deleteMany({ reason: "Checkup" })
+
+db.createCollection('scratch_appointments')
+db.scratch_appointments.insertMany([
+  { doctorId: new ObjectId(), patientId: new ObjectId(), start: new Date(), durationMin: 10, reason: "Good", status: "scheduled", fee: 10 },
+  { doctorId: new ObjectId(), patientId: new ObjectId(), start: new Date(), durationMin: 10, reason: "Bad Status", status: "done", fee: 10 },
+  { doctorId: new ObjectId(), patientId: new ObjectId(), start: new Date(), durationMin: 10, reason: "Bad Fee", status: "scheduled", fee: -5 }
+])
+
+db.runCommand({
+  collMod: 'scratch_appointments',
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      properties: {
+        status: { enum: ['scheduled', 'completed', 'cancelled'] },
+        fee: { bsonType: 'number', minimum: 0 }
+      }
+    }
+  },
+  validationLevel: 'moderate',
+  validationAction: 'warn'
+})
+
+db.scratch_appointments.insertOne({ doctorId: new ObjectId(), patientId: new ObjectId(), start: new Date(), durationMin: 10, reason: "New Bad", status: "wrong", fee: 10 })
+
+db.scratch_appointments.updateOne({ reason: "Bad Status" }, { $set: { reason: "Bad Status Updated" } })
+
+db.scratch_appointments.find({
+  $nor: [
+    { $jsonSchema: { bsonType: 'object', properties: { status: { enum: ['scheduled', 'completed', 'cancelled'] }, fee: { bsonType: 'number', minimum: 0 } } } }
+  ]
+})
+
+db.scratch_appointments.updateMany({ status: "done" }, { $set: { status: "completed" } })
+db.scratch_appointments.updateMany({ fee: { $lt: 0 } }, { $set: { fee: 0 } })
+
+db.runCommand({
+  collMod: 'scratch_appointments',
+  validationLevel: 'strict',
+  validationAction: 'error'
+})
+
+db.scratch_appointments.insertOne({ doctorId: new ObjectId(), patientId: new ObjectId(), start: new Date(), durationMin: 10, reason: "New Bad 2", status: "wrong", fee: 10 })
+
+db.scratch_appointments.drop()
+
+db.getCollectionInfos({ name: 'users' })

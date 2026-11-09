@@ -1,0 +1,57 @@
+use('clinic')
+
+db.users.countDocuments({ role: "doctor" })
+
+db.users.countDocuments({ role: "doctor", active: true })
+
+db.users.find({ role: "patient", phone: { $exists: false } }).toArray()
+
+db.users.find({ role: "patient", "patient.allergies": "penicillin" }).toArray()
+
+db.users.find({ role: "patient", $or: [ { "patient.allergies": { $exists: false } }, { "patient.allergies": { $size: 0 } } ] }).toArray()
+
+db.users.find({ role: "patient", "patient.birthDate": { $lt: new Date("1990-01-01T00:00:00Z") } }).toArray()
+
+db.appointments.find({ start: { $gte: new Date("2025-03-01T00:00:00Z"), $lt: new Date("2025-04-01T00:00:00Z") } }).sort({ start: 1 }).toArray()
+
+db.appointments.find({ status: "completed", fee: { $gte: 80, $lte: 130 } }, { _id: 0, reason: 1, fee: 1 }).toArray()
+
+db.appointments.countDocuments({ reason: { $regex: "follow-up", $options: "i" } })
+
+db.appointments.find({ prescriptions: { $elemMatch: { drug: "atenolol", days: { $gte: 7 } } } }).toArray()
+
+db.users.updateOne({ email: "sofia.lindqvist@clinic.test" }, { $set: { active: true } })
+
+db.appointments.updateMany({ status: "scheduled" }, { $inc: { fee: 10 } })
+
+db.users.updateOne({ email: "ben.okoye@example.com" }, { $addToSet: { "patient.allergies": "latex" } })
+
+db.appointments.updateOne({ reason: "Palpitations" }, { $set: { status: "cancelled", fee: 0 } })
+
+db.appointments.updateOne({ reason: "Blood pressure check" }, { $set: { prescriptions: [{ drug: "amlodipine", dose: "5mg", days: 30 }] } })
+
+db.users.updateOne(
+  { email: "felix.brandt@example.com" },
+  { 
+    $set: { 
+      name: "Felix Brandt", 
+      role: "patient", 
+      active: true, 
+      patient: { birthDate: new Date("1995-05-15T00:00:00Z") } 
+    } 
+  },
+  { upsert: true }
+)
+
+db.users.updateOne({ role: "patient" }, { $set: { role: "superuser" } })
+
+db.users.deleteOne({ email: "felix.brandt@example.com" })
+
+db.appointments.deleteMany({ status: "cancelled" })
+
+const ana = db.users.findOne({ email: "ana.costa@example.com" })
+db.appointments.deleteMany({ patientId: ana._id })
+db.users.deleteOne({ _id: ana._id })
+
+db.users.countDocuments()
+db.appointments.countDocuments()

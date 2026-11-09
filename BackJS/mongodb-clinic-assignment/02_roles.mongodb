@@ -1,0 +1,62 @@
+use('clinic')
+
+db.users.drop()
+db.appointments.drop()
+
+db.createCollection('users')
+db.createCollection('appointments')
+
+db.users.insertOne({
+  name: 'Matrix Test',
+  email: 'matrix@example.com',
+  role: 'admin',
+  active: true
+})
+
+db.createRole({
+  role: 'frontdesk',
+  privileges: [
+    {
+      resource: { db: 'clinic', collection: 'users' },
+      actions: [ 'find', 'insert', 'update' ]
+    },
+    {
+      resource: { db: 'clinic', collection: 'appointments' },
+      actions: [ 'find', 'insert', 'update' ]
+    }
+  ],
+  roles: []
+})
+
+db.createUser({ user: 'clinicApp', pwd: 'Password12', roles: [ { role: 'readWrite', db: 'clinic' } ] })
+db.createUser({ user: 'auditor',   pwd: 'Password23', roles: [ { role: 'read', db: 'clinic' } ] })
+db.createUser({ user: 'reception', pwd: 'Password13', roles: [ { role: 'frontdesk', db: 'clinic' } ] })
+
+db.users.findOne()
+
+db.appointments.insertOne({
+  doctorId: new ObjectId(),
+  patientId: new ObjectId(),
+  start: new Date(),
+  durationMin: 15,
+  reason: 'matrix test',
+  status: 'scheduled',
+  fee: 0
+})
+
+db.users.updateOne(
+  { name: 'Matrix Test' },
+  { $set: { phone: '555-9999' } }
+)
+
+db.appointments.deleteOne({ reason: 'matrix test' })
+
+db.users.createIndex({ email: 1 })
+
+db.getCollectionNames()
+
+db.appointments.deleteMany({ reason: 'matrix test' })
+
+db.revokeRolesFromUser('clinicApp', [ { role: 'readWrite', db: 'clinic' } ])
+
+db.grantRolesToUser('clinicApp', [ { role: 'read', db: 'clinic' } ])
