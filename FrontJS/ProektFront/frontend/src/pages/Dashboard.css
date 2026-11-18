@@ -1,0 +1,209 @@
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background-color: #111827;
+  border-bottom: 1px solid #1F2937;
+}
+
+.navbar-brand {
+  font-size: 20px;
+  font-weight: 700;
+  color: #3B82F6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logout-btn {
+  background: transparent;
+  color: #EF4444;
+  border: 1px solid #EF4444;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  background: #EF4444;
+  color: white;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  padding: 30px 40px;
+  gap: 30px;
+}
+
+.sidebar {
+  width: 280px;
+  background-color: #111827;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #1F2937;
+  height: fit-content;
+}
+
+.sidebar h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  border-bottom: 1px solid #1F2937;
+  padding-bottom: 10px;
+}
+
+.filter-group {
+  margin-bottom: 20px;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 14px;
+  color: #9CA3AF;
+  margin-bottom: 8px;
+}
+
+.filter-group select, .filter-group input {
+  width: 100%;
+  padding: 10px;
+  background-color: #1F2937;
+  border: 1px solid #374151;
+  color: white;
+  border-radius: 8px;
+  outline: none;
+}
+
+.content-area {
+  flex: 1;
+}
+
+.content-area h2 {
+  margin-top: 0;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.job-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.job-card {
+  background-color: #111827;
+  border: 1px solid #1F2937;
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.job-card:hover {
+  transform: translateY(-5px);
+  border-color: #3B82F6;
+}
+
+.job-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.job-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #F8FAFC;
+  margin: 0 0 5px 0;
+}
+
+.job-company {
+  font-size: 14px;
+  color: #9CA3AF;
+}
+
+.job-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #3B82F6;
+}
+
+.job-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.tag {
+  background-color: #1E293B;
+  color: #CBD5E1;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid #334155;
+}
+
+.apply-btn {
+  margin-top: auto;
+  background-color: #2563EB;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  width: 100%;
+}
+
+.apply-btn:hover {
+  background-color: #1D4ED8;
+}
+
+
+.create-job-form {
+  background-color: #111827;
+  border: 1px solid #1F2937;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.create-job-form input, .create-job-form textarea {
+  padding: 12px;
+  background-color: #1F2937;
+  border: 1px solid #374151;
+  color: white;
+  border-radius: 8px;
+  outline: none;
+}
+
+.create-job-form button {
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
