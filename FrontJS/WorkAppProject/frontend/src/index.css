@@ -1,0 +1,48 @@
+@import './styles/tokens.css';
+@import './styles/ui.css';
+@import './styles/pages.css';
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--wx-bg);
+  color: var(--wx-ink);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { margin: 0; color: var(--wx-ink); letter-spacing: -0.02em; }
+h1 { font-size: 30px; font-weight: 800; }
+h2 { font-size: 21px; font-weight: 800; }
+h3 { font-size: 17px; font-weight: 700; }
+p { margin: 0; }
+
+a { color: var(--wx-primary); text-decoration: none; font-weight: 600; }
+a:hover { text-decoration: underline; }
+
+button { font-family: inherit; }
+input, select, textarea { font-family: inherit; font-size: 15px; color: var(--wx-ink); }
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--wx-primary);
+  outline-offset: 2px;
+  border-radius: var(--wx-radius-sm);
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

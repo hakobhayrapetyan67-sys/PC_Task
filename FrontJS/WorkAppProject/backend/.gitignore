@@ -1,0 +1,20 @@
+node_modules
+
+# Secrets
+.env
+.env.local
+
+# Prisma generated client (recreated by npm install -> postinstall)
+/generated
+
+# SQLite database
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Uploaded files (keep the folders, not the contents)
+/uploads/**/*
+!/uploads/**/.gitkeep
+
+*.log

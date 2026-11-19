@@ -1,0 +1,240 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  // Prisma 7's `prisma-client` generator emits TypeScript only - forcing
+  // generatedFileExtension = "js" just renames a .ts file and plain `node`
+  // then chokes on `export type`. So the client stays .ts and the server is
+  // run with tsx, which strips the types at load time.
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "sqlite"
+  // URL comes from prisma.config.ts / DATABASE_URL (Prisma 7)
+}
+
+// SQLite has no enum type, so these are plain strings. The allowed values are
+// listed next to each field and enforced in lib/validators.js.
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  name     String
+  role     String @default("WORKER") // WORKER | PROVIDER
+
+  // --- email verification ---
+  emailVerified Boolean @default(false)
+
+  // --- shared profile ---
+  avatarUrl String?
+  phone     String?
+  location  String?
+  headline  String?
+  bio       String?
+
+  // --- job-seeker profile ---
+  cvUrl  String?
+  skills String  @default("")
+
+  // --- employer profile ---
+  companyName        String?
+  companyWebsite     String?
+  companySize        String?
+  companyAbout       String?
+  verificationStatus String  @default("NONE") // NONE | PENDING | VERIFIED | REJECTED
+  verificationNote   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobs                 Job[]
+  applications         Application[]
+  conversationsAsWorker   Conversation[] @relation("ConversationWorker")
+  conversationsAsProvider Conversation[] @relation("ConversationProvider")
+  messages                Message[]
+  favorites            Favorite[]
+  authTokens           AuthToken[]
+  verificationRequests VerificationRequest[]
+  notifications        Notification[]
+  activityLogs         ActivityLog[]
+
+  @@index([role])
+  @@index([verificationStatus])
+}
+
+// One-time tokens for email confirmation and password reset.
+model AuthToken {
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
+  type      String // VERIFY_EMAIL | RESET_PASSWORD
+  userId    Int
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+}
+
+model Job {
+  id             Int     @id @default(autoincrement())
+  title          String
+  description    String
+  category       String  @default("IT") // IT | DESIGN | MARKETING | SALES | FINANCE | OTHER
+  location       String  @default("Yerevan")
+  employmentType String  @default("FULL_TIME") // FULL_TIME | PART_TIME | CONTRACT | INTERNSHIP
+  workMode       String  @default("ONSITE") // ONSITE | HYBRID | REMOTE
+  experienceMin  Int     @default(0)
+  experienceMax  Int?
+  salaryMin      Int?
+  salaryMax      Int?
+  currency       String  @default("USD")
+  skills         String  @default("") // comma-separated
+  status         String  @default("ACTIVE") // ACTIVE | CLOSED
+  views          Int     @default(0)
+  providerId     Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provider      User           @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  applications  Application[]
+  favorites     Favorite[]
+  conversations Conversation[]
+
+  @@index([providerId])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model Application {
+  id          Int     @id @default(autoincrement())
+  jobId       Int
+  workerId    Int
+  coverLetter String  @default("")
+  cvUrl       String?
+  status      String  @default("PENDING") // PENDING | REVIEWED | ACCEPTED | REJECTED
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  job    Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  worker User @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  // A worker can apply to a job only once.
+  @@unique([jobId, workerId])
+  @@index([workerId])
+  @@index([jobId])
+  @@index([status])
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  jobId     Int
+  workerId  Int
+  createdAt DateTime @default(now())
+
+  job    Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  worker User @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, workerId])
+  @@index([workerId])
+}
+
+model VerificationRequest {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  companyName String
+  taxId       String?
+  documentUrl String
+  status      String    @default("PENDING") // PENDING | VERIFIED | REJECTED
+  note        String?
+  createdAt   DateTime  @default(now())
+  reviewedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Notification {
+  id     Int     @id @default(autoincrement())
+  userId Int
+  type   String // APPLICATION | STATUS | VERIFICATION | SYSTEM
+  title  String
+  body   String  @default("")
+  link   String?
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([readAt])
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  action    String
+  meta      String   @default("")
+  ip        String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+}
+
+// One thread per (job, worker) pair: a candidate and the employer of that
+// vacancy. Scoping it this way means authorisation is a single ownership
+// check - nobody outside the two participants can reach the thread.
+model Conversation {
+  id         Int      @id @default(autoincrement())
+  jobId      Int
+  workerId   Int
+  providerId Int
+
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  job      Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  worker   User @relation("ConversationWorker", fields: [workerId], references: [id], onDelete: Cascade)
+  provider User @relation("ConversationProvider", fields: [providerId], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  @@unique([jobId, workerId])
+  @@index([workerId])
+  @@index([providerId])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             Int    @id @default(autoincrement())
+  conversationId Int
+  senderId       Int
+  body           String @default("")
+
+  // A single optional attachment per message.
+  attachmentUrl  String?
+  attachmentName String?
+  attachmentType String?
+  attachmentSize Int?
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([readAt])
+}

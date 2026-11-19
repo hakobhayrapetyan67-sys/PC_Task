@@ -1,0 +1,3 @@
+--AGREGATE FUNCTIONS
+
+SELECT COUNT(*) from products;   
